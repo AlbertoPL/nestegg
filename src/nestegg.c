@@ -1409,8 +1409,14 @@ nestegg_init(nestegg ** context, nestegg_io io, nestegg_log callback)
   char * doctype;
   nestegg * ctx;
 
-  if (!(io.read && io.seek && io.tell))
+  if (!(io.read && io.seek && io.tell)) {
+    if (callback) {
+       callback(NULL, NESTEGG_LOG_DEBUG, "Failed to initialize context because "
+        "one of io.read (%x), io.seek (%x), or io.tell (%x) is NULL.",
+        io.read, io.seek, io.tell);
+    }
     return -1;
+  }
 
   ctx = ne_alloc(sizeof(*ctx));
 
@@ -1424,11 +1430,13 @@ nestegg_init(nestegg ** context, nestegg_io io, nestegg_log callback)
 
   r = ne_peek_element(ctx, &id, NULL);
   if (r != 1) {
+    ctx->log(ctx, NESTEGG_LOG_DEBUG, "Failed to get id, r=%d\n", r);
     nestegg_destroy(ctx);
     return -1;
   }
 
   if (id != ID_EBML) {
+    ctx->log(ctx, NESTEGG_LOG_DEBUG, "File has wrong ID (%x, should be %x) for EBML\n", id, ID_EBML);
     nestegg_destroy(ctx);
     return -1;
   }
@@ -1440,6 +1448,7 @@ nestegg_init(nestegg ** context, nestegg_io io, nestegg_log callback)
   r = ne_parse(ctx, NULL);
 
   if (r != 1) {
+    ctx->log(ctx, NESTEGG_LOG_DEBUG, "Failed to parse, err=%d\n", r);
     nestegg_destroy(ctx);
     return -1;
   }
@@ -1447,6 +1456,7 @@ nestegg_init(nestegg ** context, nestegg_io io, nestegg_log callback)
   if (ne_get_uint(ctx->ebml.ebml_read_version, &version) != 0)
     version = 1;
   if (version != 1) {
+    ctx->log(ctx, NESTEGG_LOG_DEBUG, "Failed because version == %d != 1.\n", version);
     nestegg_destroy(ctx);
     return -1;
   }
@@ -1454,6 +1464,7 @@ nestegg_init(nestegg ** context, nestegg_io io, nestegg_log callback)
   if (ne_get_string(ctx->ebml.doctype, &doctype) != 0)
     doctype = "matroska";
   if (strcmp(doctype, "webm") != 0) {
+    ctx->log(ctx, NESTEGG_LOG_DEBUG, "Failed because doctype == %s != webm.\n", doctype);
     nestegg_destroy(ctx);
     return -1;
   }
@@ -1461,11 +1472,13 @@ nestegg_init(nestegg ** context, nestegg_io io, nestegg_log callback)
   if (ne_get_uint(ctx->ebml.doctype_read_version, &docversion) != 0)
     docversion = 1;
   if (docversion < 1 || docversion > 2) {
+    ctx->log(ctx, NESTEGG_LOG_DEBUG, "Failed because docversion == %d != 1.\n", docversion);
     nestegg_destroy(ctx);
     return -1;
   }
 
   if (!ctx->segment.tracks.track_entry.head) {
+    ctx->log(ctx, NESTEGG_LOG_DEBUG, "Failed because there is no track entry head.\n");
     nestegg_destroy(ctx);
     return -1;
   }
