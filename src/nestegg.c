@@ -604,7 +604,7 @@ ne_read_svint(nestegg_io * io, int64_t * value, uint64_t * length)
 }
 
 static int
-ne_read_uint(nestegg_io * io, uint64_t * val, uint64_t length)
+ne_read_uint(nestegg_io * io, uint64_t * val, unsigned int length)
 {
   unsigned char b;
   int r;
@@ -626,7 +626,7 @@ ne_read_uint(nestegg_io * io, uint64_t * val, uint64_t length)
 }
 
 static int
-ne_read_int(nestegg_io * io, int64_t * val, uint64_t length)
+ne_read_int(nestegg_io * io, int64_t * val, unsigned int length)
 {
   int r;
   uint64_t uval, base;
@@ -653,7 +653,7 @@ ne_read_int(nestegg_io * io, int64_t * val, uint64_t length)
 }
 
 static int
-ne_read_float(nestegg_io * io, double * val, uint64_t length)
+ne_read_float(nestegg_io * io, double * val, unsigned int length)
 {
   union {
     uint64_t u;
